@@ -52,6 +52,7 @@
 
   <modules>
     <module>algoliasearch-common</module>
+    <module>algoliasearch-common-async</module>
     <module>algoliasearch-appengine</module>
     <module>algoliasearch-async</module>
     <module>algoliasearch</module>
@@ -67,14 +68,6 @@
     </resources>
 
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
@@ -243,6 +236,11 @@
       <dependency>
         <groupId>com.algolia</groupId>
         <artifactId>algoliasearch-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.algolia</groupId>
+        <artifactId>algoliasearch-common-async</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

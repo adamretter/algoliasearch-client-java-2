@@ -7,14 +7,14 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchOperations {
 
-  private final List<BatchOperation> requests;
+  private final List<? extends BatchOperation> requests;
 
-  public BatchOperations(List<BatchOperation> requests) {
+  public BatchOperations(List<? extends BatchOperation> requests) {
     this.requests = requests;
   }
 
   @SuppressWarnings("unused")
-  public List<BatchOperation> getRequests() {
+  public List<? extends BatchOperation> getRequests() {
     return requests;
   }
 }

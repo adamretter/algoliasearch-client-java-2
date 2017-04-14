@@ -1,9 +1,6 @@
 package com.algolia.search.integration.sync;
 
-import com.algolia.search.AlgoliaObject;
-import com.algolia.search.AlgoliaObjectForFaceting;
-import com.algolia.search.Index;
-import com.algolia.search.SyncAlgoliaIntegrationTest;
+import com.algolia.search.*;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.exceptions.AlgoliaIndexNotFoundException;
 import com.algolia.search.inputs.BatchOperation;
@@ -14,6 +11,7 @@ import com.algolia.search.objects.Query;
 import com.algolia.search.responses.MultiQueriesResult;
 import com.algolia.search.responses.SearchFacetResult;
 import com.algolia.search.responses.SearchResult;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +36,12 @@ abstract public class SyncSearchTest extends SyncAlgoliaIntegrationTest {
   @Before
   @After
   public void cleanUp() throws AlgoliaException {
-    List<BatchOperation> clean = indicesNames.stream().map(BatchDeleteIndexOperation::new).collect(Collectors.toList());
+    List<BatchOperation> clean = Utils.map(indicesNames, new AlgoliaFunction<String, BatchOperation>() {
+      @Override
+      public BatchOperation apply(String s) {
+        return new BatchDeleteIndexOperation(s);
+      }
+    });
     client.batch(clean).waitForCompletion();
   }
 
@@ -80,9 +83,14 @@ abstract public class SyncSearchTest extends SyncAlgoliaIntegrationTest {
 
   @Test
   public void searchOnNonExistingIndex() throws AlgoliaException {
-    Index<AlgoliaObject> index = client.initIndex("index3", AlgoliaObject.class);
+    final Index<AlgoliaObject> index = client.initIndex("index3", AlgoliaObject.class);
     assertThatExceptionOfType(AlgoliaIndexNotFoundException.class).isThrownBy(
-      () -> index.search(new Query(("")))
+      new ThrowableAssert.ThrowingCallable() {
+        @Override
+        public void call() throws Throwable {
+          index.search(new Query(("")));
+        }
+      }
     ).withMessage("index3 does not exist");
   }
 

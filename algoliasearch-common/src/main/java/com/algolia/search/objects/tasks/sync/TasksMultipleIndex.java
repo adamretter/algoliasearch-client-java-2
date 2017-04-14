@@ -1,6 +1,7 @@
 package com.algolia.search.objects.tasks.sync;
 
 import com.algolia.search.APIClient;
+import com.algolia.search.Utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Comparator;
@@ -53,6 +54,6 @@ public class TasksMultipleIndex extends GenericTask<Map<String, Long>> {
   @SuppressWarnings("OptionalGetWithoutIsPresent")
   @Override
   public Long getTaskIDToWaitFor() {
-    return getTaskID().values().stream().max(Comparator.comparingLong(Long::longValue)).get();
+    return Utils.max(getTaskID().values());
   }
 }

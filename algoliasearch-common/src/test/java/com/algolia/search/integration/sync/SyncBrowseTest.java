@@ -1,9 +1,6 @@
 package com.algolia.search.integration.sync;
 
-import com.algolia.search.AlgoliaObject;
-import com.algolia.search.Index;
-import com.algolia.search.IndexIterable;
-import com.algolia.search.SyncAlgoliaIntegrationTest;
+import com.algolia.search.*;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.inputs.batch.BatchDeleteIndexOperation;
@@ -12,10 +9,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +29,12 @@ abstract public class SyncBrowseTest extends SyncAlgoliaIntegrationTest {
   @Before
   @After
   public void cleanUp() throws AlgoliaException {
-    List<BatchOperation> clean = indicesNames.stream().map(BatchDeleteIndexOperation::new).collect(Collectors.toList());
+    List<BatchOperation> clean = Utils.map(indicesNames, new AlgoliaFunction<String, BatchOperation>() {
+      @Override
+      public BatchOperation apply(String s) {
+        return new BatchDeleteIndexOperation(s);
+      }
+    });
     client.batch(clean).waitForCompletion();
   }
 
@@ -41,7 +42,10 @@ abstract public class SyncBrowseTest extends SyncAlgoliaIntegrationTest {
   public void browse() throws AlgoliaException {
     Index<AlgoliaObject> index = client.initIndex("index1", AlgoliaObject.class);
 
-    List<AlgoliaObject> objects = IntStream.rangeClosed(1, 10).mapToObj(i -> new AlgoliaObject("name" + i, i)).collect(Collectors.toList());
+    List<AlgoliaObject> objects = new ArrayList<>();
+    for (int i = 1; i <= 10; i++) {
+      objects.add(new AlgoliaObject("name" + i, i));
+    }
     index.addObjects(objects).waitForCompletion();
 
     IndexIterable<AlgoliaObject> iterator = index.browse(new Query("").setHitsPerPage(1));
@@ -56,8 +60,13 @@ abstract public class SyncBrowseTest extends SyncAlgoliaIntegrationTest {
   public void browseWithQuery() throws AlgoliaException {
     Index<AlgoliaObject> index = client.initIndex("index4", AlgoliaObject.class);
 
-    List<AlgoliaObject> objects = IntStream.rangeClosed(1, 5).mapToObj(i -> new AlgoliaObject("name" + i, i)).collect(Collectors.toList());
-    objects.addAll(IntStream.rangeClosed(1, 5).mapToObj(i -> new AlgoliaObject("other" + i, i)).collect(Collectors.toList()));
+    List<AlgoliaObject> objects = new ArrayList<>();
+    for (int i = 1; i <= 5; i++) {
+      objects.add(new AlgoliaObject("name" + i, i));
+    }
+    for (int i = 1; i <= 5; i++) {
+      objects.add(new AlgoliaObject("other" + i, i));
+    }
     index.addObjects(objects).waitForCompletion();
 
     IndexIterable<AlgoliaObject> iterator = index.browse(new Query("name").setHitsPerPage(5));
@@ -94,7 +103,10 @@ abstract public class SyncBrowseTest extends SyncAlgoliaIntegrationTest {
   public void deleteByQuery() throws AlgoliaException {
     Index<AlgoliaObject> index = client.initIndex("index2", AlgoliaObject.class);
 
-    List<AlgoliaObject> objects = IntStream.rangeClosed(1, 10).mapToObj(i -> new AlgoliaObject("name" + i, i)).collect(Collectors.toList());
+    List<AlgoliaObject> objects = new ArrayList<>();
+    for (int i = 1; i <= 10; i++) {
+      objects.add(new AlgoliaObject("name" + i, i));
+    }
     index.addObjects(objects).waitForCompletion();
 
     index.deleteByQuery(new Query(""));
@@ -106,7 +118,10 @@ abstract public class SyncBrowseTest extends SyncAlgoliaIntegrationTest {
   public void deleteByQueryBatchSize2() throws AlgoliaException {
     Index<AlgoliaObject> index = client.initIndex("index3", AlgoliaObject.class);
 
-    List<AlgoliaObject> objects = IntStream.rangeClosed(1, 10).mapToObj(i -> new AlgoliaObject("name" + i, i)).collect(Collectors.toList());
+    List<AlgoliaObject> objects = new ArrayList<>();
+    for (int i = 1; i <= 10; i++) {
+      objects.add(new AlgoliaObject("name" + i, i));
+    }
     index.addObjects(objects).waitForCompletion();
 
     index.deleteByQuery(new Query(""), 2);

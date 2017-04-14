@@ -1,6 +1,6 @@
 package com.algolia.search.http;
 
-import java.time.Instant;
+import java.util.Date;
 
 class HostStatus {
 
@@ -8,14 +8,14 @@ class HostStatus {
   private final long lastModifiedTimestamp;
   private final long hostDownTimeout;
 
-  HostStatus(long hostDownTimeout, boolean isUp, Instant lastModified) {
+  HostStatus(long hostDownTimeout, boolean isUp, Date lastModified) {
     this.hostDownTimeout = hostDownTimeout;
     this.isUp = isUp;
-    this.lastModifiedTimestamp = lastModified.toEpochMilli();
+    this.lastModifiedTimestamp = lastModified.getTime();
   }
 
-  boolean isUpOrCouldBeRetried(Instant now) {
-    return isUp || Math.abs(now.toEpochMilli() - lastModifiedTimestamp) >= hostDownTimeout;
+  boolean isUpOrCouldBeRetried(Date now) {
+    return isUp || Math.abs(now.getTime() - lastModifiedTimestamp) >= hostDownTimeout;
   }
 
 }

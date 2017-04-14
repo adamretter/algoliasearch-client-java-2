@@ -2,6 +2,7 @@ package com.algolia.search;
 
 import com.algolia.search.exceptions.AlgoliaException;
 import com.google.common.collect.ImmutableMap;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,25 +66,45 @@ public class ApacheHttpClientTest {
 
   @Test
   public void shouldHandleTimeoutsInDns() throws Exception {
-    APIClient client = build("java-dsn.algolia.biz", APPLICATION_ID + "-dsn.algolia.net");
+    final APIClient client = build("java-dsn.algolia.biz", APPLICATION_ID + "-dsn.algolia.net");
 
-    assertThatItTookLessThan(3 * 1000, () -> assertThat(client.listIndices()).isNotNull());
+    assertThatItTookLessThan(3 * 1000, new Callable<Object>() {
+      @Override
+      public Object call() throws Exception {
+        return assertThat(client.listIndices()).isNotNull();
+      }
+    });
   }
 
   @Test
   public void shouldHandleConnectTimeout() throws Exception {
-    APIClient client = build("notcp-xx-1.algolianet.com", APPLICATION_ID + "-dsn.algolia.net");
+    final APIClient client = build("notcp-xx-1.algolianet.com", APPLICATION_ID + "-dsn.algolia.net");
 
-    assertThatItTookLessThan(3 * 1000, () -> assertThat(client.listIndices()).isNotNull());
+    assertThatItTookLessThan(3 * 1000, new Callable<Object>() {
+      @Override
+      public Object call() throws Exception {
+        return assertThat(client.listIndices()).isNotNull();
+      }
+    });
   }
 
   @Test
   public void shouldHandleMultipleConnectTimeout() throws Exception {
-    APIClient client = build("notcp-xx-1.algolia.net", "notcp-xx-1.algolianet.com");
+    final APIClient client = build("notcp-xx-1.algolia.net", "notcp-xx-1.algolianet.com");
 
     assertThatItTookLessThan(
       3 * 1000,
-      () -> assertThatExceptionOfType(AlgoliaException.class).isThrownBy(client::listIndices)
+      new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          return assertThatExceptionOfType(AlgoliaException.class).isThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+              client.listIndices();
+            }
+          });
+        }
+      }
     );
   }
 
@@ -105,18 +126,23 @@ public class ApacheHttpClientTest {
 
     runnable.start();
 
-    APIClient client = build("localhost:8080", APPLICATION_ID + "-1.algolianet.com");
+    final APIClient client = build("localhost:8080", APPLICATION_ID + "-1.algolianet.com");
 
     assertThatItTookLessThan(
       2 * 1000,
-      client::listIndices
+      new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          return client.listIndices();
+        }
+      }
     );
   }
 
   @Test
   public void shouldHandleSNI() throws Exception {
     APIClient client = build(APPLICATION_ID + "-1.algolianet.com");
-    assertThat(client.listKeys()).isNotEmpty();
+    assertThat(client.listApiKeys()).isNotEmpty();
   }
 
 }

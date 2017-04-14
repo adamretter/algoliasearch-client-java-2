@@ -1,11 +1,12 @@
 package com.algolia.search.inputs;
 
+import com.algolia.search.AlgoliaFunction;
+import com.algolia.search.Utils;
 import com.algolia.search.objects.IndexQuery;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MultipleQueriesRequests {
@@ -13,10 +14,12 @@ public class MultipleQueriesRequests {
   private final List<QueryWithIndex> requests;
 
   public MultipleQueriesRequests(List<IndexQuery> requests) {
-    this.requests = requests
-      .stream()
-      .map(MultipleQueriesRequests.QueryWithIndex::new)
-      .collect(Collectors.toList());
+    this.requests = Utils.map(requests, new AlgoliaFunction<IndexQuery, QueryWithIndex>() {
+      @Override
+      public QueryWithIndex apply(IndexQuery indexQuery) {
+        return new MultipleQueriesRequests.QueryWithIndex(indexQuery);
+      }
+    });
   }
 
   public List<QueryWithIndex> getRequests() {

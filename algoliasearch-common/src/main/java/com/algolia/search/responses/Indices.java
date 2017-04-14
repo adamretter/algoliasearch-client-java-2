@@ -2,7 +2,7 @@ package com.algolia.search.responses;
 
 import com.algolia.search.Index;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Indices {
@@ -10,7 +10,7 @@ public class Indices {
   private List<Index.Attributes> items;
 
   public List<Index.Attributes> getItems() {
-    return items == null ? new ArrayList<>() : items;
+    return items == null ? Collections.<Index.Attributes>emptyList() : items;
   }
 
   @SuppressWarnings("unused")

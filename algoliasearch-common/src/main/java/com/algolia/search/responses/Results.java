@@ -1,6 +1,6 @@
 package com.algolia.search.responses;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Results<T> {
@@ -8,7 +8,7 @@ public class Results<T> {
   private List<T> results;
 
   public List<T> getResults() {
-    return results == null ? new ArrayList<>() : results;
+    return results == null ? Collections.<T>emptyList() : results;
   }
 
   @SuppressWarnings("unused")

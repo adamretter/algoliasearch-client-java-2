@@ -1,5 +1,6 @@
 package com.algolia.search.http;
 
+import com.algolia.search.AlgoliaFunction;
 import com.algolia.search.Utils;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.exceptions.AlgoliaHttpException;
@@ -11,20 +12,19 @@ import com.google.common.annotations.VisibleForTesting;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public abstract class AlgoliaHttpClient {
 
   @VisibleForTesting
   Map<String, HostStatus> hostStatuses = new ConcurrentHashMap<>();
 
-  protected Instant now() {
-    return Instant.now();
+  protected Date now() {
+    return new Date();
   }
 
   protected abstract AlgoliaHttpResponse request(@Nonnull AlgoliaHttpRequest request) throws IOException;
@@ -62,10 +62,13 @@ public abstract class AlgoliaHttpClient {
   }
 
   private List<String> hostsThatAreUp(List<String> hosts) {
-    return hosts
-      .stream()
-      .filter(s -> getStatus(s).isUpOrCouldBeRetried(now()))
-      .collect(Collectors.toList());
+    return Utils.filter(hosts, new AlgoliaFunction<String, Boolean>() {
+
+      @Override
+      public Boolean apply(String s) {
+        return getStatus(s).isUpOrCouldBeRetried(now());
+      }
+    });
   }
 
   private void markHostAsDown(String host) {

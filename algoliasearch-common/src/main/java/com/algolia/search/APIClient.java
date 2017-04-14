@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class APIClient {
 
@@ -312,8 +311,13 @@ public class APIClient {
    * @return the associated task
    * @throws AlgoliaException
    */
-  public TasksMultipleIndex batch(@Nonnull List<BatchOperation> operations) throws AlgoliaException {
-    boolean atLeastOneHaveIndexNameNull = operations.stream().anyMatch(o -> o.getIndexName() == null);
+  public <T extends BatchOperation> TasksMultipleIndex batch(@Nonnull List<T> operations) throws AlgoliaException {
+    boolean atLeastOneHaveIndexNameNull = Utils.anyMatch(operations, new AlgoliaFunction<T, Boolean>() {
+      @Override
+      public Boolean apply(BatchOperation batchOperation) {
+        return batchOperation.getIndexName() == null;
+      }
+    });
     if (atLeastOneHaveIndexNameNull) {
       throw new AlgoliaException("All batch operations must have an index name set");
     }
@@ -446,8 +450,12 @@ public class APIClient {
   <T> TaskSingleIndex addObjects(String indexName, List<T> objects) throws AlgoliaException {
     return batchSingleIndex(
       indexName,
-      objects.stream().map(BatchAddObjectOperation::new).collect(Collectors.toList())
-    )
+      Utils.map(objects, new AlgoliaFunction<T, BatchOperation>() {
+        @Override
+        public BatchOperation apply(T t) {
+          return new BatchAddObjectOperation<>(t);
+        }
+      }))
       .setAPIClient(this)
       .setIndex(indexName);
   }
@@ -481,7 +489,12 @@ public class APIClient {
   <T> TaskSingleIndex saveObjects(String indexName, List<T> objects) throws AlgoliaException {
     return batchSingleIndex(
       indexName,
-      objects.stream().map(BatchUpdateObjectOperation::new).collect(Collectors.toList())
+      Utils.map(objects, new AlgoliaFunction<T, BatchOperation>() {
+        @Override
+        public BatchOperation apply(T t) {
+          return new BatchUpdateObjectOperation<>(t);
+        }
+      })
     )
       .setAPIClient(this)
       .setIndex(indexName);
@@ -503,7 +516,12 @@ public class APIClient {
   TaskSingleIndex deleteObjects(String indexName, List<String> objectIDs) throws AlgoliaException {
     return batchSingleIndex(
       indexName,
-      objectIDs.stream().map(BatchDeleteObjectOperation::new).collect(Collectors.toList())
+      Utils.map(objectIDs, new AlgoliaFunction<String, BatchOperation>() {
+        @Override
+        public BatchOperation apply(String s) {
+          return new BatchDeleteObjectOperation(s);
+        }
+      })
     )
       .setAPIClient(this)
       .setIndex(indexName);
@@ -523,8 +541,13 @@ public class APIClient {
   }
 
   @SuppressWarnings("unchecked")
-  <T> List<T> getObjects(String indexName, List<String> objectIDs, Class<T> klass) throws AlgoliaException {
-    Requests requests = new Requests(objectIDs.stream().map(o -> new Requests.Request().setIndexName(indexName).setObjectID(o)).collect(Collectors.toList()));
+  <T> List<T> getObjects(final String indexName, List<String> objectIDs, Class<T> klass) throws AlgoliaException {
+    Requests requests = new Requests(Utils.map(objectIDs, new AlgoliaFunction<String, Requests.Request>() {
+      @Override
+      public Requests.Request apply(String s) {
+        return new Requests.Request().setIndexName(indexName).setObjectID(s);
+      }
+    }));
     AlgoliaRequest<Results> algoliaRequest = new AlgoliaRequest<>(
       HttpMethod.POST,
       true,
@@ -537,9 +560,14 @@ public class APIClient {
   }
 
   @SuppressWarnings("unchecked")
-  <T> List<T> getObjects(String indexName, List<String> objectIDs, List<String> attributesToRetrieve, Class<T> klass) throws AlgoliaException {
-    final String encodedAttributesToRetrieve = String.join(",", attributesToRetrieve);
-    Requests requests = new Requests(objectIDs.stream().map(o -> new Requests.Request().setIndexName(indexName).setObjectID(o).setAttributesToRetrieve(encodedAttributesToRetrieve)).collect(Collectors.toList()));
+  <T> List<T> getObjects(final String indexName, List<String> objectIDs, List<String> attributesToRetrieve, Class<T> klass) throws AlgoliaException {
+    final String encodedAttributesToRetrieve = Utils.join(",", attributesToRetrieve);
+    Requests requests = new Requests(Utils.map(objectIDs, new AlgoliaFunction<String, Requests.Request>() {
+      @Override
+      public Requests.Request apply(String s) {
+        return new Requests.Request().setIndexName(indexName).setObjectID(s).setAttributesToRetrieve(encodedAttributesToRetrieve);
+      }
+    }));
     AlgoliaRequest<Results> algoliaRequest = new AlgoliaRequest<>(
       HttpMethod.POST,
       true,
@@ -653,7 +681,12 @@ public class APIClient {
 
   TaskSingleIndex batch(String indexName, List<BatchOperation> operations) throws AlgoliaException {
     //Special case for single index batches, indexName of operations should be null
-    boolean onSameIndex = operations.stream().allMatch(o -> Objects.equals(null, o.getIndexName()));
+    boolean onSameIndex = Utils.allMatch(operations, new AlgoliaFunction<BatchOperation, Boolean>() {
+      @Override
+      public Boolean apply(BatchOperation o) {
+        return Objects.equals(null, o.getIndexName());
+      }
+    });
     if (!onSameIndex) {
       throw new AlgoliaException("All operations are not on the same index");
     }
@@ -759,7 +792,7 @@ public class APIClient {
     );
   }
 
-  Task batchSynonyms(String indexName, List<AbstractSynonym> synonyms, Boolean forwardToReplicas, Boolean replaceExistingSynonyms) throws AlgoliaException {
+  Task batchSynonyms(String indexName, List<? extends AbstractSynonym> synonyms, Boolean forwardToReplicas, Boolean replaceExistingSynonyms) throws AlgoliaException {
     Task task = httpClient.requestWithRetry(
       new AlgoliaRequest<>(
         HttpMethod.POST,
@@ -777,8 +810,8 @@ public class APIClient {
   void deleteByQuery(String indexName, Query query, int batchSize) throws AlgoliaException {
     query = query
       .setAttributesToRetrieve(Collections.singletonList("objectID"))
-      .setAttributesToHighlight(Collections.emptyList())
-      .setAttributesToSnippet(Collections.emptyList())
+      .setAttributesToHighlight(Collections.<String>emptyList())
+      .setAttributesToSnippet(Collections.<String>emptyList())
       .setHitsPerPage(1000) //Magic number
       .setDistinct(Distinct.of(false));
 
@@ -798,10 +831,18 @@ public class APIClient {
     }
   }
 
-  TaskSingleIndex partialUpdateObjects(String indexName, List<Object> objects) throws AlgoliaException {
+  <T> TaskSingleIndex partialUpdateObjects(String indexName, List<T> objects) throws AlgoliaException {
+    List<BatchOperation> map = Utils.map(objects, new AlgoliaFunction<T, BatchOperation>() {
+      @Override
+      public BatchOperation apply(Object o) {
+        return new BatchPartialUpdateObjectOperation<>(o);
+      }
+    });
+
+
     TaskSingleIndex task = batch(
       indexName,
-      objects.stream().map(BatchPartialUpdateObjectOperation::new).collect(Collectors.toList())
+      map
     );
 
     return task.setAPIClient(this).setIndex(indexName);

@@ -1,7 +1,9 @@
 package com.algolia.search.integration.sync;
 
+import com.algolia.search.AlgoliaFunction;
 import com.algolia.search.SyncAlgoliaIntegrationTest;
 import com.algolia.search.Index;
+import com.algolia.search.Utils;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.inputs.batch.BatchDeleteIndexOperation;
@@ -32,7 +34,12 @@ abstract public class SyncSynonymsTest extends SyncAlgoliaIntegrationTest {
   @Before
   @After
   public void cleanUp() throws AlgoliaException {
-    List<BatchOperation> clean = indicesNames.stream().map(BatchDeleteIndexOperation::new).collect(Collectors.toList());
+    List<BatchOperation> clean = Utils.map(indicesNames, new AlgoliaFunction<String, BatchOperation>() {
+      @Override
+      public BatchOperation apply(String s) {
+        return new BatchDeleteIndexOperation(s);
+      }
+    });
     client.batch(clean).waitForCompletion();
   }
 

@@ -1,6 +1,7 @@
 package com.algolia.search;
 
 import com.algolia.search.exceptions.AlgoliaException;
+import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.objects.Query;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,8 +14,12 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class Utils {
 
@@ -58,6 +63,59 @@ public class Utils {
     CompletableFuture<T> future = new CompletableFuture<>();
     future.completeExceptionally(t);
     return future;
+  }
+
+  public static String join(String delimiter, List<String> list) {
+    switch (list.size()) {
+      case 0: return "";
+      case 1: return list.get(0);
+      default:
+        StringBuilder result = new StringBuilder(list.get(0));
+        for (int i = 1; i < list.size(); i++) {
+          result.append(delimiter).append(list.get(i));
+        }
+        return result.toString();
+    }
+  }
+
+  public static Long max(Collection<Long> values) {
+    return null;
+  }
+
+  public static <T> List<T> filter(List<T> list, AlgoliaFunction<T, Boolean> filter) {
+    List<T> result = new ArrayList<>();
+    for (T t : list) {
+      if(filter.apply(t)) {
+        result.add(t);
+      }
+    }
+    return result;
+  }
+
+  public static <T> Boolean anyMatch(List<T> list, AlgoliaFunction<T, Boolean> matcher) {
+    for (T t : list) {
+      if(matcher.apply(t)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static <T> Boolean allMatch(List<T> list, AlgoliaFunction<T, Boolean> matcher) {
+    for (T t : list) {
+      if(!matcher.apply(t)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static <T, R> List<R> map(Iterable<T> list, AlgoliaFunction<T, R> function) {
+    List<R> result = new ArrayList<>();
+    for (T t : list) {
+      result.add(function.apply(t));
+    }
+    return result;
   }
 
 }

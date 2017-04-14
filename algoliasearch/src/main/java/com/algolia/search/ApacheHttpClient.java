@@ -21,7 +21,6 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ApacheHttpClient extends AlgoliaHttpClient {
 
@@ -33,7 +32,14 @@ public class ApacheHttpClient extends AlgoliaHttpClient {
   private final int hostDownTimeout;
 
   public ApacheHttpClient(APIClientConfiguration configuration) {
-    List<Header> httpHeaders = configuration.getHeaders().entrySet().stream().map(e -> new BasicHeader(e.getKey(), e.getValue())).collect(Collectors.toList());
+    List<Header> httpHeaders = Utils.map(
+      configuration.getHeaders().entrySet(),
+      new AlgoliaFunction<Map.Entry<String, String>, Header>() {
+        @Override
+        public Header apply(Map.Entry<String, String> e) {
+          return new BasicHeader(e.getKey(), e.getValue());
+        }
+      });
     RequestConfig requestConfig = RequestConfig
       .custom()
       .setConnectTimeout(configuration.getConnectTimeout())
@@ -57,7 +63,7 @@ public class ApacheHttpClient extends AlgoliaHttpClient {
   protected AlgoliaHttpResponse request(@Nonnull AlgoliaHttpRequest request) throws IOException {
     RequestBuilder builder = RequestBuilder
       .create(request.getMethod().name)
-      .setUri("https://" + request.getHost() + "/" + String.join("/", request.getPath()));
+      .setUri("https://" + request.getHost() + "/" + Utils.join("/", request.getPath()));
 
     for (Map.Entry<String, String> entry : request.getParameters().entrySet()) {
       builder = builder.addParameter(entry.getKey(), entry.getValue());

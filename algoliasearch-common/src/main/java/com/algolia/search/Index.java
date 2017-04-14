@@ -440,7 +440,7 @@ public class Index<T> extends AbstractIndex<T> {
    * @return the associated task
    * @throws AlgoliaException
    */
-  public TaskSingleIndex partialUpdateObjects(@Nonnull List<Object> objects) throws AlgoliaException {
+  public TaskSingleIndex partialUpdateObjects(@Nonnull List<? extends Object> objects) throws AlgoliaException {
     return client.partialUpdateObjects(name, objects);
   }
 
@@ -582,7 +582,7 @@ public class Index<T> extends AbstractIndex<T> {
    * @return the associated task
    * @throws AlgoliaException
    */
-  public Task batchSynonyms(@Nonnull List<AbstractSynonym> synonyms, boolean forwardToReplicas, boolean replaceExistingSynonyms) throws AlgoliaException {
+  public Task batchSynonyms(@Nonnull List<? extends AbstractSynonym> synonyms, boolean forwardToReplicas, boolean replaceExistingSynonyms) throws AlgoliaException {
     return client.batchSynonyms(name, synonyms, forwardToReplicas, replaceExistingSynonyms);
   }
 
@@ -605,7 +605,7 @@ public class Index<T> extends AbstractIndex<T> {
    * @return the associated task
    * @throws AlgoliaException
    */
-  public Task batchSynonyms(@Nonnull List<AbstractSynonym> synonyms) throws AlgoliaException {
+  public Task batchSynonyms(@Nonnull List<? extends AbstractSynonym> synonyms) throws AlgoliaException {
     return batchSynonyms(synonyms, false, false);
   }
 

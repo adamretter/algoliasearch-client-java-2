@@ -1,8 +1,6 @@
 package com.algolia.search.integration.sync;
 
-import com.algolia.search.SyncAlgoliaIntegrationTest;
-import com.algolia.search.AlgoliaObjectWithID;
-import com.algolia.search.Index;
+import com.algolia.search.*;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.inputs.batch.BatchAddObjectOperation;
@@ -34,7 +32,12 @@ abstract public class SyncBatchTest extends SyncAlgoliaIntegrationTest {
   @Before
   @After
   public void cleanUp() throws AlgoliaException {
-    List<BatchOperation> clean = indicesNames.stream().map(BatchDeleteIndexOperation::new).collect(Collectors.toList());
+    List<BatchOperation> clean = Utils.map(indicesNames, new AlgoliaFunction<String, BatchOperation>() {
+      @Override
+      public BatchOperation apply(String s) {
+        return new BatchDeleteIndexOperation(s);
+      }
+    });
     client.batch(clean).waitForCompletion();
   }
 
@@ -59,11 +62,13 @@ abstract public class SyncBatchTest extends SyncAlgoliaIntegrationTest {
     Index<AlgoliaObjectWithID> index3 = client.initIndex("index3", AlgoliaObjectWithID.class);
     Index<AlgoliaObjectWithID> index4 = client.initIndex("index4", AlgoliaObjectWithID.class);
 
-    client.batch(Arrays.asList(
+    List<BatchAddObjectOperation<AlgoliaObjectWithID>> operations = Arrays.asList(
       new BatchAddObjectOperation<>(index2, new AlgoliaObjectWithID("1", "name", 2)),
       new BatchAddObjectOperation<>(index3, new AlgoliaObjectWithID("1", "name", 2)),
       new BatchAddObjectOperation<>(index4, new AlgoliaObjectWithID("1", "name", 2))
-    )).waitForCompletion();
+    );
+
+    client.batch(operations).waitForCompletion();
 
     client.batch(Arrays.asList(
       new BatchClearIndexOperation(index2),
