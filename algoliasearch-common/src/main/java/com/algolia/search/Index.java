@@ -3,11 +3,9 @@ package com.algolia.search;
 import com.algolia.search.exceptions.AlgoliaException;
 import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.inputs.partial_update.PartialUpdateOperation;
+import com.algolia.search.inputs.query_rules.Rule;
 import com.algolia.search.inputs.synonym.AbstractSynonym;
-import com.algolia.search.objects.ApiKey;
-import com.algolia.search.objects.IndexSettings;
-import com.algolia.search.objects.Query;
-import com.algolia.search.objects.SynonymQuery;
+import com.algolia.search.objects.*;
 import com.algolia.search.objects.tasks.sync.Task;
 import com.algolia.search.objects.tasks.sync.TaskIndexing;
 import com.algolia.search.objects.tasks.sync.TaskSingleIndex;
@@ -229,7 +227,7 @@ interface Settings<T> extends BaseSyncIndex<T> {
   }
 
   /**
-   * Set settings of this index, and do not forward to slaves
+   * Set settings of this index, and do not forward to replicas
    *
    * @param settings the settings to set
    * @return the related Task
@@ -243,7 +241,7 @@ interface Settings<T> extends BaseSyncIndex<T> {
    * Set settings of this index
    *
    * @param settings          the settings to set
-   * @param forwardToReplicas should these updates be forwarded to the slaves
+   * @param forwardToReplicas should these updates be forwarded to the replicas
    * @return the related Task
    * @throws AlgoliaException
    */
@@ -451,7 +449,7 @@ interface PartialUpdate<T> extends BaseSyncIndex<T> {
 interface Synonyms<T> extends BaseSyncIndex<T> {
 
   /**
-   * Saves/updates a synonym without replacing it and NOT forwarding it to the slaves
+   * Saves/updates a synonym without replacing it and NOT forwarding it to the replicas
    *
    * @param synonymID the id of the synonym
    * @param content   the synonym
@@ -467,7 +465,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
    *
    * @param synonymID         the id of the synonym
    * @param content           the synonym
-   * @param forwardToReplicas should this request be forwarded to slaves
+   * @param forwardToReplicas should this request be forwarded to replicas
    * @return the associated task
    * @throws AlgoliaException
    */
@@ -480,7 +478,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
    *
    * @param synonymID               the id of the synonym
    * @param content                 the synonym
-   * @param forwardToReplicas       should this request be forwarded to slaves
+   * @param forwardToReplicas       should this request be forwarded to replicas
    * @param replaceExistingSynonyms should replace if this synonyms exists
    * @return the associated task
    * @throws AlgoliaException
@@ -501,7 +499,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
   }
 
   /**
-   * Deletes a synonym by ID and NOT forwarding it to the slaves
+   * Deletes a synonym by ID and NOT forwarding it to the replicas
    *
    * @param synonymID the id of the synonym
    * @return the associated task
@@ -515,7 +513,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
    * Deletes a synonym
    *
    * @param synonymID         the id of the synonym
-   * @param forwardToReplicas should this request be forwarded to slaves
+   * @param forwardToReplicas should this request be forwarded to replicas
    * @return the associated task
    * @throws AlgoliaException
    */
@@ -524,7 +522,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
   }
 
   /**
-   * Clear all synonyms and NOT forwarding it to the slaves
+   * Clear all synonyms and NOT forwarding it to the replicas
    *
    * @return the associated task
    * @throws AlgoliaException
@@ -580,7 +578,7 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
   }
 
   /**
-   * Add or Replace a list of synonyms, no forward to slaves, and no replacement
+   * Add or Replace a list of synonyms, no forward to replicas, and no replacement
    *
    * @param synonyms List of synonyms
    * @return the associated task
@@ -588,6 +586,136 @@ interface Synonyms<T> extends BaseSyncIndex<T> {
    */
   default Task batchSynonyms(@Nonnull List<AbstractSynonym> synonyms) throws AlgoliaException {
     return batchSynonyms(synonyms, false, false);
+  }
+
+}
+
+interface rules<T> extends BaseSyncIndex<T> {
+
+  /**
+   * Saves/updates a query rule without replacing it and NOT forwarding it to the replicas
+   *
+   * @param queryRuleID the id of the queryRule
+   * @param content     the queryRule
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task saveRule(@Nonnull String queryRuleID, @Nonnull Rule content) throws AlgoliaException {
+    return saveRule(queryRuleID, content, false);
+  }
+
+  /**
+   * Saves/updates a queryRule without replacing
+   *
+   * @param queryRuleID       the id of the queryRule
+   * @param content           the queryRule
+   * @param forwardToReplicas should this request be forwarded to replicas
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task saveRule(@Nonnull String queryRuleID, @Nonnull Rule content, boolean forwardToReplicas) throws AlgoliaException {
+    return getApiClient().saveRule(getName(), queryRuleID, content, forwardToReplicas);
+  }
+
+  /**
+   * Get a rule by Id
+   *
+   * @param ruleId the id of the query rule
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Optional<Rule> getRule(@Nonnull String ruleId) throws AlgoliaException {
+    return getApiClient().getRule(getName(), ruleId);
+  }
+
+  /**
+   * Deletes a query rule by ID and NOT forwarding it to the replicas
+   *
+   * @param ruleId the id of the queryRule
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task deleteRule(@Nonnull String ruleId) throws AlgoliaException {
+    return deleteRule(ruleId, false);
+  }
+
+  /**
+   * Deletes a query rule
+   *
+   * @param ruleId            the id of the query rule
+   * @param forwardToReplicas should this request be forwarded to replicas
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task deleteRule(@Nonnull String ruleId, boolean forwardToReplicas) throws AlgoliaException {
+    return getApiClient().deleteRule(getName(), ruleId, forwardToReplicas);
+  }
+
+  /**
+   * Clear all query rules and NOT forwarding it to the replicas
+   *
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task clearRules() throws AlgoliaException {
+    return clearRules(false);
+  }
+
+  /**
+   * Clears all rules
+   *
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task clearRules(boolean forwardToReplicas) throws AlgoliaException {
+    return getApiClient().clearRules(getName(), forwardToReplicas);
+  }
+
+  /**
+   * Search for rules
+   *
+   * @param query the query
+   * @return the results of the query
+   * @throws AlgoliaException
+   */
+  default SearchRuleResult searchRules(@Nonnull RuleQuery query) throws AlgoliaException {
+    return getApiClient().searchRules(getName(), query);
+  }
+
+  /**
+   * Add or replace a list of query rules
+   *
+   * @param rules              List of query rules
+   * @param forwardToReplicas  Forward the operation to the slave indices
+   * @param clearExistingRules Replace the existing query rules with this batch
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task batchRules(@Nonnull List<Rule> rules, boolean forwardToReplicas, boolean clearExistingRules) throws AlgoliaException {
+    return getApiClient().batchRules(getName(), rules, forwardToReplicas, clearExistingRules);
+  }
+
+  /**
+   * Add or replace a list of rules, no replacement
+   *
+   * @param rules             List of rules
+   * @param forwardToReplicas Forward the operation to the slave indices
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task batchRules(@Nonnull List<Rule> rules, boolean forwardToReplicas) throws AlgoliaException {
+    return batchRules(rules, forwardToReplicas, false);
+  }
+
+  /**
+   * Add or replace a list of rules, no forward to replicas, and no replacement
+   *
+   * @param rules List of rules
+   * @return the associated task
+   * @throws AlgoliaException
+   */
+  default Task batchRules(@Nonnull List<Rule> rules) throws AlgoliaException {
+    return batchRules(rules, false, false);
   }
 
 }
@@ -655,7 +783,8 @@ public class Index<T> implements
   Settings<T>,
   Objects<T>,
   Tasks<T>,
-  IndexCRUD<T> {
+  IndexCRUD<T>,
+  rules<T> {
 
   /**
    * Index name

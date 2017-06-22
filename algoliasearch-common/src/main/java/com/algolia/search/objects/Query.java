@@ -14,91 +14,91 @@ import java.util.Map;
 public class Query {
 
   /* advanced */
-  private Distinct distinct;
-  private Boolean getRankingInfo;
-  private List<String> numericFilters;
-  private List<String> tagFilters;
-  private Boolean analytics;
-  private String analyticsTags;
-  private Boolean synonyms;
-  private Boolean replaceSynonymsInHighlight;
-  private Integer minProximity;
-  private List<String> responseFields;
-  private Integer maxFacetHits;
-  private Boolean percentileComputation;
+  protected Distinct distinct;
+  protected Boolean getRankingInfo;
+  protected List<String> numericFilters;
+  protected List<String> tagFilters;
+  protected Boolean analytics;
+  protected String analyticsTags;
+  protected Boolean synonyms;
+  protected Boolean replaceSynonymsInHighlight;
+  protected Integer minProximity;
+  protected List<String> responseFields;
+  protected Integer maxFacetHits;
+  protected Boolean percentileComputation;
 
   /* attributes */
-  private List<String> attributesToRetrieve;
-  private List<String> restrictSearchableAttributes;
+  protected List<String> attributesToRetrieve;
+  protected List<String> restrictSearchableAttributes;
 
   /* filtering-faceting */
-  private String filters;
-  private String facets;
-  private Integer maxValuesPerFacet;
-  private List<String> facetFilters;
-  private Boolean facetingAfterDistinct;
+  protected String filters;
+  protected String facets;
+  protected Integer maxValuesPerFacet;
+  protected List<String> facetFilters;
+  protected Boolean facetingAfterDistinct;
 
   /* geo-search */
-  private String aroundLatLng;
-  private Boolean aroundLatLngViaIP;
-  private Object aroundRadius;
-  private Integer aroundPrecision;
-  private Integer minimumAroundRadius;
-  private List<String> insideBoundingBox;
-  private List<String> insidePolygon;
+  protected String aroundLatLng;
+  protected Boolean aroundLatLngViaIP;
+  protected Object aroundRadius;
+  protected Integer aroundPrecision;
+  protected Integer minimumAroundRadius;
+  protected List<String> insideBoundingBox;
+  protected List<String> insidePolygon;
 
   /* highlighting-snippeting */
-  private List<String> attributesToHighlight;
-  private List<String> attributesToSnippet;
-  private String highlightPreTag;
-  private String highlightPostTag;
-  private String snippetEllipsisText;
-  private Boolean restrictHighlightAndSnippetArrays;
+  protected List<String> attributesToHighlight;
+  protected List<String> attributesToSnippet;
+  protected String highlightPreTag;
+  protected String highlightPostTag;
+  protected String snippetEllipsisText;
+  protected Boolean restrictHighlightAndSnippetArrays;
 
   /* pagination */
-  private Integer page;
-  private Integer hitsPerPage;
-  private Integer offset;
-  private Integer length;
+  protected Integer page;
+  protected Integer hitsPerPage;
+  protected Integer offset;
+  protected Integer length;
 
   /* performance */
   //Nothing in Query
 
   /* query strategy */
-  private String queryType;
-  private RemoveWordsType removeWordsIfNoResults;
-  private Boolean advancedSyntax;
-  private List<String> optionalWords;
-  private RemoveStopWords removeStopWords;
-  private List<String> disableExactOnAttributes;
-  private String exactOnSingleWordQuery;
-  private List<String> alternativesAsExact;
+  protected String queryType;
+  protected RemoveWordsType removeWordsIfNoResults;
+  protected Boolean advancedSyntax;
+  protected List<String> optionalWords;
+  protected RemoveStopWords removeStopWords;
+  protected List<String> disableExactOnAttributes;
+  protected String exactOnSingleWordQuery;
+  protected List<String> alternativesAsExact;
 
   /* ranking */
   //Nothing in Query
 
   /* search */
-  private String query;
+  protected String query;
 
   /* typos */
-  private Integer minWordSizefor1Typo;
-  private Integer minWordSizefor2Typos;
-  private TypoTolerance typoTolerance;
-  private Boolean allowTyposOnNumericTokens;
-  private IgnorePlurals ignorePlurals;
-  private List<String> disableTypoToleranceOnAttributes;
+  protected Integer minWordSizefor1Typo;
+  protected Integer minWordSizefor2Typos;
+  protected TypoTolerance typoTolerance;
+  protected Boolean allowTyposOnNumericTokens;
+  protected IgnorePlurals ignorePlurals;
+  protected List<String> disableTypoToleranceOnAttributes;
 
   /* SECURED API KEYS */
-  private String userToken;
-  private Integer validUntil;
-  private List<String> restrictIndices;
-  private String restrictSources;
+  protected String userToken;
+  protected Integer validUntil;
+  protected List<String> restrictIndices;
+  protected String restrictSources;
 
   /* BROWSE */
-  private String cursor;
+  protected String cursor;
 
   /* CUSTOM */
-  private Map<String, String> customParameters = new HashMap<>();
+  protected Map<String, String> customParameters = new HashMap<>();
 
   public Query() {
   }
@@ -631,4 +631,5 @@ public class Query {
       return name;
     }
   }
+
 }

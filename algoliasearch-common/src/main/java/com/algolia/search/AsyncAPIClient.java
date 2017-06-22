@@ -11,6 +11,7 @@ import com.algolia.search.inputs.batch.BatchDeleteObjectOperation;
 import com.algolia.search.inputs.batch.BatchPartialUpdateObjectOperation;
 import com.algolia.search.inputs.batch.BatchUpdateObjectOperation;
 import com.algolia.search.inputs.partial_update.PartialUpdateOperation;
+import com.algolia.search.inputs.query_rules.Rule;
 import com.algolia.search.inputs.synonym.AbstractSynonym;
 import com.algolia.search.objects.*;
 import com.algolia.search.objects.tasks.async.*;
@@ -26,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("WeakerAccess")
 public class AsyncAPIClient {
 
   /**
@@ -300,7 +302,7 @@ public class AsyncAPIClient {
       try {
         result = status.get();
       } catch (CancellationException | InterruptedException | ExecutionException e) {
-        //If the future was cancelled or the thread was interrupted or future completed exceptionally
+        //Condition the future was cancelled or the thread was interrupted or future completed exceptionally
         //We stop
         break;
       }
@@ -774,4 +776,75 @@ public class AsyncAPIClient {
       ).setData(new Search(query))
     );
   }
+
+  CompletableFuture<AsyncTask> saveRule(String indexName, String queryRuleID, Rule queryRule, Boolean forwardToReplicas) {
+    return httpClient.requestWithRetry(
+      new AlgoliaRequest<>(
+        HttpMethod.PUT,
+        false,
+        Arrays.asList("1", "indexes", indexName, "rules", queryRuleID),
+        AsyncTask.class
+      ).setParameters(ImmutableMap.of("forwardToReplicas", forwardToReplicas.toString())).setData(queryRule)
+    ).thenApply(s -> s.setIndex(indexName));
+  }
+
+  CompletableFuture<Optional<Rule>> getRule(String indexName, String queryRuleID) {
+    return httpClient
+      .requestWithRetry(
+        new AlgoliaRequest<>(
+          HttpMethod.GET,
+          false,
+          Arrays.asList("1", "indexes", indexName, "rules", queryRuleID),
+          Rule.class
+        )
+      )
+      .thenApply(Optional::ofNullable);
+  }
+
+  CompletableFuture<AsyncTask> deleteRule(String indexName, String queryRuleID, Boolean forwardToReplicas) {
+    return httpClient.requestWithRetry(
+      new AlgoliaRequest<>(
+        HttpMethod.DELETE,
+        false,
+        Arrays.asList("1", "indexes", indexName, "rules", queryRuleID),
+        AsyncTask.class
+      ).setParameters(ImmutableMap.of("forwardToReplicas", forwardToReplicas.toString()))
+    ).thenApply(s -> s.setIndex(indexName));
+  }
+
+  CompletableFuture<AsyncTask> clearRules(String indexName, Boolean forwardToReplicas) {
+    return httpClient.requestWithRetry(
+      new AlgoliaRequest<>(
+        HttpMethod.POST,
+        false,
+        Arrays.asList("1", "indexes", indexName, "rules", "clear"),
+        AsyncTask.class
+      ).setParameters(ImmutableMap.of("forwardToReplicas", forwardToReplicas.toString()))
+    ).thenApply(s -> s.setIndex(indexName));
+  }
+
+  CompletableFuture<SearchRuleResult> searchRules(String indexName, RuleQuery query) {
+    return httpClient.requestWithRetry(
+      new AlgoliaRequest<>(
+        HttpMethod.POST,
+        false,
+        Arrays.asList("1", "indexes", indexName, "rules", "search"),
+        SearchRuleResult.class
+      ).setData(query)
+    );
+  }
+
+  CompletableFuture<AsyncTask> batchRules(String indexName, List<Rule> rules, Boolean forwardToReplicas, Boolean clearExistingRules) {
+    return httpClient.requestWithRetry(
+      new AlgoliaRequest<>(
+        HttpMethod.POST,
+        false,
+        Arrays.asList("1", "indexes", indexName, "rules", "batch"),
+        AsyncTask.class
+      )
+        .setParameters(ImmutableMap.of("forwardToReplicas", forwardToReplicas.toString(), "clearExistingRules", clearExistingRules.toString()))
+        .setData(rules)
+    ).thenApply(s -> s.setIndex(indexName));
+  }
+
 }

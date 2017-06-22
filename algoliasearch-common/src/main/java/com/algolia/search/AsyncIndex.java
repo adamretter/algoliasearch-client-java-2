@@ -2,11 +2,9 @@ package com.algolia.search;
 
 import com.algolia.search.inputs.BatchOperation;
 import com.algolia.search.inputs.partial_update.PartialUpdateOperation;
+import com.algolia.search.inputs.query_rules.Rule;
 import com.algolia.search.inputs.synonym.AbstractSynonym;
-import com.algolia.search.objects.ApiKey;
-import com.algolia.search.objects.IndexSettings;
-import com.algolia.search.objects.Query;
-import com.algolia.search.objects.SynonymQuery;
+import com.algolia.search.objects.*;
 import com.algolia.search.objects.tasks.async.AsyncTask;
 import com.algolia.search.objects.tasks.async.AsyncTaskIndexing;
 import com.algolia.search.objects.tasks.async.AsyncTaskSingleIndex;
@@ -211,7 +209,7 @@ interface AsyncSettings<T> extends BaseAsyncIndex<T> {
   }
 
   /**
-   * Set settings of this index, and do not forward to slaves
+   * Set settings of this index, and do not forward to replicas
    *
    * @param settings the settings to set
    * @return the related AsyncTask
@@ -224,7 +222,7 @@ interface AsyncSettings<T> extends BaseAsyncIndex<T> {
    * Set settings of this index
    *
    * @param settings          the settings to set
-   * @param forwardToReplicas should these updates be forwarded to the slaves
+   * @param forwardToReplicas should these updates be forwarded to the replicas
    * @return the related AsyncTask
    */
   default CompletableFuture<AsyncTask> setSettings(@Nonnull IndexSettings settings, @Nonnull Boolean forwardToReplicas) {
@@ -427,7 +425,7 @@ interface AsyncPartialUpdate<T> extends BaseAsyncIndex<T> {
 interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
 
   /**
-   * Saves/updates a synonym without replacing it and NOT forwarding it to the slaves
+   * Saves/updates a synonym without replacing it and NOT forwarding it to the replicas
    *
    * @param synonymID the id of the synonym
    * @param content   the synonym
@@ -442,7 +440,7 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
    *
    * @param synonymID         the id of the synonym
    * @param content           the synonym
-   * @param forwardToReplicas should this request be forwarded to slaves
+   * @param forwardToReplicas should this request be forwarded to replicas
    * @return the associated task
    */
   default CompletableFuture<AsyncTask> saveSynonym(@Nonnull String synonymID, @Nonnull AbstractSynonym content, boolean forwardToReplicas) {
@@ -454,7 +452,7 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
    *
    * @param synonymID               the id of the synonym
    * @param content                 the synonym
-   * @param forwardToReplicas       should this request be forwarded to slaves
+   * @param forwardToReplicas       should this request be forwarded to replicas
    * @param replaceExistingSynonyms should replace if this synonyms exists
    * @return the associated task
    */
@@ -473,7 +471,7 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
   }
 
   /**
-   * Deletes a synonym by ID and NOT forwarding it to the slaves
+   * Deletes a synonym by ID and NOT forwarding it to the replicas
    *
    * @param synonymID the id of the synonym
    * @return the associated task
@@ -486,7 +484,7 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
    * Deletes a synonym
    *
    * @param synonymID         the id of the synonym
-   * @param forwardToReplicas should this request be forwarded to slaves
+   * @param forwardToReplicas should this request be forwarded to replicas
    * @return the associated task
    */
   default CompletableFuture<AsyncTask> deleteSynonym(@Nonnull String synonymID, boolean forwardToReplicas) {
@@ -494,7 +492,7 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
   }
 
   /**
-   * Clear all synonyms and NOT forwarding it to the slaves
+   * Clear all synonyms and NOT forwarding it to the replicas
    *
    * @return the associated task
    */
@@ -545,13 +543,132 @@ interface AsyncSynonyms<T> extends BaseAsyncIndex<T> {
   }
 
   /**
-   * Add or Replace a list of synonyms, no forward to slaves, and no replacement
+   * Add or Replace a list of synonyms, no forward to replicas, and no replacement
    *
    * @param synonyms List of synonyms
    * @return the associated task
    */
   default CompletableFuture<AsyncTask> batchSynonyms(@Nonnull List<AbstractSynonym> synonyms) {
     return batchSynonyms(synonyms, false, false);
+  }
+
+}
+
+interface AsyncRules<T> extends BaseAsyncIndex<T> {
+
+  /**
+   * Saves/updates a rule without replacing it and NOT forwarding it to the replicas
+   *
+   * @param ruleID the id of the query rule
+   * @param rule   the query rule
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> saveRule(@Nonnull String ruleID, @Nonnull Rule rule) {
+    return saveRule(ruleID, rule, false);
+  }
+
+  /**
+   * Saves/updates a rule
+   *
+   * @param ruleID            the id of the query rule
+   * @param rule              the query rule
+   * @param forwardToReplicas should this request be forwarded to replicas
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> saveRule(@Nonnull String ruleID, @Nonnull Rule rule, boolean forwardToReplicas) {
+    return getApiClient().saveRule(getName(), ruleID, rule, forwardToReplicas);
+  }
+
+  /**
+   * Get a rule by ID
+   *
+   * @param ruleID the id of the rule
+   * @return the associated task
+   */
+  default CompletableFuture<Optional<Rule>> getRule(@Nonnull String ruleID) {
+    return getApiClient().getRule(getName(), ruleID);
+  }
+
+  /**
+   * Deletes a rule by ID and NOT forwarding it to the replicas
+   *
+   * @param ruleID the id of the query rule
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> deleteRule(@Nonnull String ruleID) {
+    return deleteRule(ruleID, false);
+  }
+
+  /**
+   * Deletes a rule
+   *
+   * @param ruleID            the id of the rule
+   * @param forwardToReplicas should this request be forwarded to replicas
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> deleteRule(@Nonnull String ruleID, boolean forwardToReplicas) {
+    return getApiClient().deleteRule(getName(), ruleID, forwardToReplicas);
+  }
+
+  /**
+   * Clear all rules and NOT forwarding it to the replicas
+   *
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> clearRules() {
+    return clearRules(false);
+  }
+
+  /**
+   * Clears all rules
+   *
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> clearRules(boolean forwardToReplicas) {
+    return getApiClient().clearRules(getName(), forwardToReplicas);
+  }
+
+  /**
+   * Search for rules
+   *
+   * @param query the query
+   * @return the results of the query
+   */
+  default CompletableFuture<SearchRuleResult> searchRules(@Nonnull RuleQuery query) {
+    return getApiClient().searchRules(getName(), query);
+  }
+
+  /**
+   * Add or replace a list of rules
+   *
+   * @param rules              List of rules
+   * @param forwardToReplicas  Forward the operation to the replicas indices
+   * @param clearExistingRules Replace the existing rules with this batch
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> batchRules(@Nonnull List<Rule> rules, boolean forwardToReplicas, boolean clearExistingRules) {
+    return getApiClient().batchRules(getName(), rules, forwardToReplicas, clearExistingRules);
+  }
+
+  /**
+   * Add or Replace a list of rules, no replacement
+   *
+   * @param rules             List of rules
+   * @param forwardToReplicas Forward the operation to the slave indices
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> batchRules(@Nonnull List<Rule> rules, boolean forwardToReplicas) {
+    return batchRules(rules, forwardToReplicas, false);
+  }
+
+  /**
+   * Add or Replace a list of rules, no forward to replicas, and no replacement
+   *
+   * @param rules List of rules
+   * @return the associated task
+   */
+  default CompletableFuture<AsyncTask> batchRules(@Nonnull List<Rule> rules) {
+    return batchRules(rules, false, false);
   }
 
 }
@@ -565,7 +682,8 @@ public class AsyncIndex<T> implements
   AsyncKey<T>,
   AsyncSearchForFacet<T>,
   AsyncPartialUpdate<T>,
-  AsyncSynonyms<T> {
+  AsyncSynonyms<T>,
+  AsyncRules<T> {
 
   /**
    * Index name
